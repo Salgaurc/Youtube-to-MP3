@@ -1,2 +1,2 @@
-yt-dlp → for downloading and converting YouTube videos to MP3.
-Pillow → for loading the .icns icon in Tkinter.
+yt-dlp     # for downloading and converting YouTube videos to MP3.
+Pillow     # for loading the .icns icon in Tkinter.
