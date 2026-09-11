@@ -29,13 +29,15 @@ def download_mp3(url, download_path, status_var, progress_var):
             status_var.set("Converting to MP3...")
             progress_bar.grid_remove()  # Hide it when done
 
-    # Specify the path to ffmpeg
-    ffmpeg_path = '/opt/homebrew/bin/ffmpeg'  # Path to your ffmpeg
+      # Caută ffmpeg lângă executabil (Windows/build), apoi în PATH (dezvoltare locală)
+    ffmpeg_path = resource_path('ffmpeg.exe' if sys.platform == 'win32' else 'ffmpeg')
+    if not os.path.exists(ffmpeg_path):
+        ffmpeg_path = None  # lasă yt-dlp să-l caute în PATH-ul sistemului
 
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': f'{download_path}/%(title).200s.%(ext)s',  # Trim long/unsafe filenames
-        'ffmpeg_location': ffmpeg_path,  # Specify the ffmpeg location
+        **({'ffmpeg_location': ffmpeg_path} if ffmpeg_path else {}),
         'progress_hooks': [hook],
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
@@ -45,7 +47,6 @@ def download_mp3(url, download_path, status_var, progress_var):
         'quiet': True,
         'noprogress': True,
     }
-
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
