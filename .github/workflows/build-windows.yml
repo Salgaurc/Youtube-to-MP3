@@ -1,0 +1,41 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout cod
+        uses: actions/checkout@v4
+
+      - name: Instalează Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalează dependențe Python
+        run: |
+          pip install yt-dlp pillow pyinstaller
+
+      - name: Descarcă ffmpeg (build static pentru Windows)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "ffmpeg.zip"
+          Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg_extracted"
+          $ffmpegExe = Get-ChildItem -Path "ffmpeg_extracted" -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
+          Copy-Item $ffmpegExe.FullName -Destination "ffmpeg.exe"
+
+      - name: Construiește executabilul
+        run: |
+          pyinstaller --onefile --windowed --name "YouTube-to-MP3" --add-binary "ffmpeg.exe;." --add-data "icon.icns;." main.py
+
+      - name: Publică executabilul
+        uses: actions/upload-artifact@v4
+        with:
+          name: YouTube-to-MP3-Windows
+          path: dist/YouTube-to-MP3.exe
